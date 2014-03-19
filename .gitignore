@@ -1,3 +1,9 @@
+
+#PyCharm
+.idea
+
+#Github's python gitignore
+
 *.py[cod]
 
 # C extensions
