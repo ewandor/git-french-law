@@ -37,6 +37,8 @@ class LegifranceClient(object):
 
             constitution.append(article)
 
+        return constitution
+
     def get_text(self, text_id):
         pass
 
