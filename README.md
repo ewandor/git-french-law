@@ -5,3 +5,5 @@ Requirements:
 
 Mechanize
 PyQuery
+enum
+GitPython
