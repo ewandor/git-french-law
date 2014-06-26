@@ -1,6 +1,7 @@
 from pyquery import PyQuery as Q
 from urllib import urlencode
 from urlparse import parse_qs
+from datetime import datetime
 
 class LegiFrancePage(object):
     adress = ''
@@ -61,10 +62,25 @@ class ArticlePage(LegiFrancePage):
         version.body = self.dom('.corpsArt').text()
         version.histo = self.dom('.histoArt').text()
 
-
     def get_article_version_list(self):
         version_list = []
         for link in self.dom('#left_menu .pGauche:eq(1) a'):
             query = Q(link).attr('href').split('?')[1]
             version_list.append(parse_qs(query)['dateTexte'][0].strip())
         return version_list
+
+class LawPage(ArticlePage):
+    REGEX_TITLE = r'n°(?P<number>[\d-]+) du (?P<date>\d+ \S+ \d{4})'
+
+    def set_law(self, law):
+        law.title = self.dom('.data a strong').text()
+        res = re.search(REGEX_TITLE, law.title)
+        law.number = res.group('number')
+        law.date = self.parse_date(res.group('date'))
+
+    @staticmethod
+    def parse_date(date_string):
+        import locale
+        locale.setlocale(locale.LC_ALL, ('fr', 'utf-8'))
+        return datetime.strptime(date, '%d %B %Y')
+
