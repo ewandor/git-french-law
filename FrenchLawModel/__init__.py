@@ -2,7 +2,7 @@ from enum import Enum
 
 version_status = Enum('in_effect', 'modificated', 'abrogated')
 
-class Text(object)
+class Text(object):
     def __init__(self):
         self.articles = []
 
@@ -24,6 +24,8 @@ class Article(object):
     def get_status(self):
         return self.versions[-1].status
 
+class Law(object):
+    pass
 
 class Version(object):
     pass

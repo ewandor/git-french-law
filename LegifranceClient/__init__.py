@@ -1,6 +1,6 @@
 from mechanize import Browser
 
-from FrenchLawModel import Text, Article, Version
+from FrenchLawModel import Text, Article, Version, Law
 
 from page import ConstitutionPage, ArticlePage
 
@@ -36,5 +36,13 @@ class LegifranceClient(object):
                 version = Version()
                 page.set_article_version(version)
                 article.add_version(version)
+                if not version.histo is None:
+                    law_page = self.get_page(page.get_associated_law_page())
+                    version.law = Law()
+                    law_page.set_law(version.law)
+                else:
+                    version.law = None
+
             constitution.append(article)
+            break
         return constitution

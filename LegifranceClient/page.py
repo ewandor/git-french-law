@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
+
 from pyquery import PyQuery as Q
+import re
 from urllib import urlencode
 from urlparse import parse_qs
 from datetime import datetime
@@ -60,7 +63,10 @@ class ArticlePage(LegiFrancePage):
 
         version.title = self.dom('.titreArt').text()
         version.body = self.dom('.corpsArt').text()
-        version.histo = self.dom('.histoArt').text()
+        if self.dom('.histoArt').text():
+            version.histo = self.dom('.histoArt').text()
+        else:
+            version.histo = None
 
     def get_article_version_list(self):
         version_list = []
@@ -69,12 +75,29 @@ class ArticlePage(LegiFrancePage):
             version_list.append(parse_qs(query)['dateTexte'][0].strip())
         return version_list
 
+    def get_associated_law_page(self):
+        import ipdb
+        ipdb.set_trace()
+        url_to_law = self.dom('.histoArt a').attr('href')
+        query = parse_qs(url_to_law.split('?')[1])
+        print url_to_law
+        return LawPage(query['cidTexte'][0], query['idArticle'][0])
+
 class LawPage(ArticlePage):
-    REGEX_TITLE = r'n°(?P<number>[\d-]+) du (?P<date>\d+ \S+ \d{4})'
+    REGEX_TITLE = ur'n°(?P<number>[\d-]+) du (?P<date>\d+ \S+ \d{4})'
+
+    def __init__(self, cid_text, article_id):
+        self.cidTexte = cid_text
+        self.idArticle = article_id
+
+    def get_adress(self):
+        return 'affichTexteArticle.do?' + urlencode(
+            {'cidTexte': self.cidTexte, 'idArticle': self.idArticle}
+        )
 
     def set_law(self, law):
         law.title = self.dom('.data a strong').text()
-        res = re.search(REGEX_TITLE, law.title)
+        res = re.search(self.REGEX_TITLE, law.title)
         law.number = res.group('number')
         law.date = self.parse_date(res.group('date'))
 
@@ -82,5 +105,5 @@ class LawPage(ArticlePage):
     def parse_date(date_string):
         import locale
         locale.setlocale(locale.LC_ALL, ('fr', 'utf-8'))
-        return datetime.strptime(date, '%d %B %Y')
+        return datetime.strptime(date_string, '%d %B %Y')
 
