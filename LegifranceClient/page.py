@@ -85,6 +85,7 @@ class ArticlePage(LegiFrancePage):
 
 class LawPage(ArticlePage):
     REGEX_TITLE = ur'n°(?P<number>[\d-]+) du (?P<date>\d+ \S+ \d{4})'
+    existing_laws = {}
 
     def __init__(self, cid_text, article_id):
         self.cidTexte = cid_text
@@ -96,10 +97,16 @@ class LawPage(ArticlePage):
         )
 
     def set_law(self, law):
-        law.title = self.dom('.data a strong').text()
+        title = self.dom('.data a strong').text()
         res = re.search(self.REGEX_TITLE, law.title)
-        law.number = res.group('number')
-        law.date = self.parse_date(res.group('date'))
+        number = res.group('number')
+        if number in self.existing_laws:
+            law = self.existing_laws[number]
+        else:
+            law.title = title
+            law.number = number
+            law.date = self.parse_date(res.group('date'))
+            self.existing_laws[number] = law
 
     @staticmethod
     def parse_date(date_string):
