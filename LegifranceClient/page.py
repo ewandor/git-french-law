@@ -76,15 +76,13 @@ class ArticlePage(LegiFrancePage):
         return version_list
 
     def get_associated_law_page(self):
-        import ipdb
-        ipdb.set_trace()
         url_to_law = self.dom('.histoArt a').attr('href')
         query = parse_qs(url_to_law.split('?')[1])
         print url_to_law
         return LawPage(query['cidTexte'][0], query['idArticle'][0])
 
 class LawPage(ArticlePage):
-    REGEX_TITLE = ur'n°(?P<number>[\d-]+) du (?P<date>\d+ \S+ \d{4})'
+    REGEX_TITLE = ur'n°\s?(?P<number>[\d-]+) du (?P<date>\d+ \S+ \d{4})'
     existing_laws = {}
 
     def __init__(self, cid_text, article_id):
@@ -98,7 +96,7 @@ class LawPage(ArticlePage):
 
     def set_law(self, law):
         title = self.dom('.data a strong').text()
-        res = re.search(self.REGEX_TITLE, law.title)
+        res = re.search(self.REGEX_TITLE, title)
         number = res.group('number')
         if number in self.existing_laws:
             law = self.existing_laws[number]
@@ -112,5 +110,5 @@ class LawPage(ArticlePage):
     def parse_date(date_string):
         import locale
         locale.setlocale(locale.LC_ALL, ('fr', 'utf-8'))
-        return datetime.strptime(date_string, '%d %B %Y')
+        return datetime.strptime(date_string.encode("utf-8"), '%d %B %Y')
 

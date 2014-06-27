@@ -38,11 +38,8 @@ class LegifranceClient(object):
                 article.add_version(version)
                 if not version.histo is None:
                     law_page = self.get_page(page.get_associated_law_page())
-                    version.law = Law()
-                    law_page.set_law(version.law)
-                else:
-                    version.law = None
+                    law = Law()
+                    law_page.set_law(law)
 
-            constitution.append(article)
-            break
+            constitution.add_article(article)
         return constitution
