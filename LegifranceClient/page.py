@@ -6,6 +6,14 @@ from urllib import urlencode
 from urlparse import parse_qs
 from datetime import datetime
 
+from FrenchLawModel import version_historic
+
+version_historic_mapping = {
+    u'Créé par': version_historic.created_by,
+    u'Modifié par': version_historic.modified_by,
+    u'Abrogé par': version_historic.abrogated_by,
+}
+
 class LegiFrancePage(object):
     adress = ''
 
@@ -37,15 +45,19 @@ class ConstitutionPage(TextPage):
         article_list = []
         for link in self.dom('.titreArt a'):
             query = Q(link).attr('href').split('?')[1]
-            article_list.append(parse_qs(query)['idArticle'][0])
+            article_list.append(''.join(parse_qs(query)['idArticle'][0].split()))
         return article_list
 
 
 class ArticlePage(LegiFrancePage):
+    REGEX_HISTORIC = ur'(?P<status>\S+ par)'
+
     def __init__(self, text_page, article_id, date=None):
         self.text_page = text_page
         self.idArticle = article_id
         self.dateTexte = date
+        self.abrogating_law_page = None
+        self.modifying_law_page = None
 
     def get_adress(self):
         if self.dateTexte is None:
@@ -63,10 +75,20 @@ class ArticlePage(LegiFrancePage):
 
         version.title = self.dom('.titreArt').text()
         version.body = self.dom('.corpsArt').text()
-        if self.dom('.histoArt').text():
-            version.histo = self.dom('.histoArt').text()
-        else:
-            version.histo = None
+
+        for entry in self.dom('.histoArt li'):
+            entry_dom = Q(entry)
+            url_to_law = entry_dom('a').attr('href')
+            query = parse_qs(url_to_law.split('?')[1])
+            if 'idArticle' in query:
+                law_page = LawPage(query['cidTexte'][0], query['idArticle'][0])
+                res = re.search(self.REGEX_HISTORIC, entry_dom.text())
+                if version_historic_mapping[res.group('status')] == version_historic.abrogated_by:
+                    self.abrogating_law_page = law_page
+                elif version_historic_mapping[res.group('status')] in\
+                        [version_historic.created_by, version_historic.modified_by]:
+                    self.modifying_law_page = law_page
+
 
     def get_article_version_list(self):
         version_list = []
@@ -74,12 +96,6 @@ class ArticlePage(LegiFrancePage):
             query = Q(link).attr('href').split('?')[1]
             version_list.append(parse_qs(query)['dateTexte'][0].strip())
         return version_list
-
-    def get_associated_law_page(self):
-        url_to_law = self.dom('.histoArt a').attr('href')
-        query = parse_qs(url_to_law.split('?')[1])
-        print url_to_law
-        return LawPage(query['cidTexte'][0], query['idArticle'][0])
 
 class LawPage(ArticlePage):
     REGEX_TITLE = ur'n°\s?(?P<number>[\d-]+) du (?P<date>\d+ \S+ \d{4})'

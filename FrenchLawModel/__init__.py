@@ -1,6 +1,7 @@
 from enum import Enum
 
-version_status = Enum('in_effect', 'modificated', 'abrogated')
+version_status = Enum('in_effect', 'modified', 'abrogated')
+version_historic = Enum('created_by', 'modified_by', 'abrogated_by')
 
 class Text(object):
     def __init__(self):
@@ -14,12 +15,12 @@ class Text(object):
             if not version.modifying_law is None:
                 if not version.modifying_law in self.modifying_laws:
                     self.modifying_laws.append(version.modifying_law)
-            if not version.modifying_law is None:
+            if not version.abrogating_law is None:
                 if not version.abrogating_law in self.modifying_laws:
                     self.modifying_laws.append(version.abrogating_law)
 
-    def get_laws_by_number(self):
-        return sorted(self.modifying_laws, key=lambda law: law.number)
+    def get_laws_by_date(self):
+        return sorted(self.modifying_laws, key=lambda law: law.date)
 
 class Article(object):
     def __init__(self):
@@ -39,6 +40,9 @@ class Law(object):
         self.date = None
         self.modified_text_article_version = []
         self.abrogated_text_article_version = []
+
+    def __repr__(self):
+        return self.title.encode("ascii", 'ignore')
 
 class Version(object):
     def __init__(self):
