@@ -122,6 +122,8 @@ class LawPage(ArticlePage):
             law.date = self.parse_date(res.group('date'))
             self.existing_laws[number] = law
 
+        return law
+
     @staticmethod
     def parse_date(date_string):
         import locale

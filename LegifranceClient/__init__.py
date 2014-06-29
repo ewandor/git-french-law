@@ -45,13 +45,11 @@ class LegifranceClient(object):
                 page.set_article_version(version)
                 if not page.abrogating_law_page is None:
                     law_page = self.get_page(page.abrogating_law_page)
-                    law = Law()
-                    law_page.set_law(law)
+                    law = law_page.set_law(Law())
                     version.set_abrogating_law(law)
                 if not page.modifying_law_page is None:
                     law_page = self.get_page(page.modifying_law_page)
-                    law = Law()
-                    law_page.set_law(law)
+                    law = law_page.set_law(Law())
                     version.set_modifying_law(law)
                 else:
                     version.set_modifying_law(self.initial_law)
