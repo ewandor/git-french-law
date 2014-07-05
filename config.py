@@ -1,2 +1,2 @@
 
-GIT_REPO = "~/repos/french-law"
+GIT_REPO_PATH = "~/repos/french-law"
