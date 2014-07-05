@@ -11,15 +11,18 @@ class GitLawClient(object):
     def get_file_path(self, article):
         return self.repo_path + '/' + article.title
 
+    def write_law_to_file(self, article, file_path):
+        f = open(file_path, 'w')
+        f.write(article.body)
+        f.close()
+
     def commit_law(self, law):
         index = self.repo.index
 
         modified_files = []
         for article in law.modified_text_article_version:
             file_path = self.get_file_path(article)
-            f = open(file_path, 'w')
-            f.write(article.body)
-            f.close()
+            self.write_law_to_file(article, file_path)
             modified_files.append(file_path)
         index.add(modified_files)
 
